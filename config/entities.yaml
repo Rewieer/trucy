@@ -1,7 +1,7 @@
 entities:
     Model\User:
         serializedName: "user"
-        groups:
+        views:
             - general:
                 - id
                 - email

@@ -6,11 +6,11 @@
  * file that was distributed with this source code.
  */
 
-namespace App\Providers\Doctrine;
+namespace Trucy\Providers\Doctrine;
 
-use App\Providers\Doctrine\Command\CreateDatabaseCommand;
-use App\Providers\Doctrine\Command\DropDatabaseCommand;
-use App\Providers\Doctrine\Command\SchemaUpdateCommand;
+use Trucy\Providers\Doctrine\Command\CreateDatabaseCommand;
+use Trucy\Providers\Doctrine\Command\DropDatabaseCommand;
+use Trucy\Providers\Doctrine\Command\SchemaUpdateCommand;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -29,13 +29,13 @@ class DoctrineProvider extends AbstractProvider {
   public function inject(ContainerBuilder $container) {
     $config = Setup::createAnnotationMetadataConfiguration([$container->getParameter("entities_dir")], true);
     $data = Yaml::parse(file_get_contents($container->getParameter("config_dir"). "/doctrine.yml"));
-    $parameters = $data["parameters"];
+    $parameters = $data["connection"];
 
     $params = [
-      "dbname" => $parameters["database_name"],
-      "user" => $parameters["database_user"],
-      "password" => $parameters["database_password"],
-      "host" => $parameters["database_host"],
+      "dbname" => $parameters["name"],
+      "user" => $parameters["user"],
+      "password" => $parameters["password"],
+      "host" => $parameters["host"],
       "driver" => "pdo_mysql"
     ];
 

@@ -1,6 +1,6 @@
-parameters:
-    database_host: 127.0.0.1
-    database_port: null
-    database_name: trucy
-    database_user: rewieer
-    database_password: azerty
+connection:
+    host: %database_host%
+    port: %database_port%
+    name: %database_name%
+    user: %database_user%
+    password: %database_password%

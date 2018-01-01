@@ -34,8 +34,15 @@ class SerializerTools {
 
   /**
    * Get a portion of the data.
-   * @param array $data looks like ["foo"]["bar"] => ["a", "b"...]
+   * @param array $data
+   * an associative arrays usually with nested values
+   *
    * @param array $path looks like ["foo"]["bar"]
+   * an array of items to fetch
+   *
+   * if the $data is equal to ["foo" => ["bar" => 1]] and $path is equal to ["foo"]["bar"]
+   * then this function returns 1 (or $data["foo"]["bar"])
+   *
    * @return array
    */
   public static function getPortion($data, array $path) {

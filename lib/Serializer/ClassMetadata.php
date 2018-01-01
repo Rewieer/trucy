@@ -12,8 +12,8 @@ namespace Trucy\Serializer;
  * Class Metadata
  * Holds the configuration for an object
  *
- * Metadata allows to customize the normalization and denormalization step.
- * For example, This mecanism is used to give informations
+ * Metadata allows to customize the normalization and denormalization.
+ * For example, This mechanism is used to give informations
  * to the normalizer that allows it to denormalize a sub-array into an object.
  * @package Serializer
  */
@@ -23,10 +23,6 @@ class ClassMetadata {
    */
   private $properties = [];
   private $views = [];
-
-  public function __construct() {
-
-  }
 
   /**
    * Add metadata about the property

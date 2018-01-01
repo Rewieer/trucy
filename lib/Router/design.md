@@ -5,6 +5,3 @@ A route is composed of :
 * A path
 * Requirements
 * A PHP callable
-
-# Router Factory
-Instantiate the router and preload it with routes

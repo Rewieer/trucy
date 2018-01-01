@@ -22,10 +22,8 @@ class ObjectNormalizer implements NormalizerInterface {
     $out = [];
     $metadata = null;
 
-    if ($context) {
-      if ($context->getView() !== null) {
-        $metadata = $context->getMetadataCollection()->getOrNull(get_class($data));
-      }
+    if ($context && $context->getMetadataCollection() !== null) {
+      $metadata = $context->getMetadataCollection()->getOrNull(get_class($data));
     }
 
     foreach ($reflection->getProperties() as $property) {
@@ -36,7 +34,7 @@ class ObjectNormalizer implements NormalizerInterface {
           $viewData = $metadata->getViewOrNull($context->getView());
           $viewData = SerializerTools::getPortion($viewData, $context->getNavigator()->getPath());
 
-          // If there's any we filter out unwanted stuff
+          // If there's any we filter out unwanted properties
           if ($viewData) {
             if (in_array($property->name, $viewData) === false &&
               array_key_exists($property->name, $viewData) === false) {
@@ -46,6 +44,7 @@ class ObjectNormalizer implements NormalizerInterface {
         }
       }
 
+      // If the property is unwanted we don't add it
       if ($skip)
         continue;
 
@@ -55,10 +54,10 @@ class ObjectNormalizer implements NormalizerInterface {
         $value = $this->normalize($value, $context);
         $context->getNavigator()->up();
       } else if (is_array($value)) {
-        // We don't handle associative arrays so we assume this is a true array of values
-        $value = array_map(function($notNormalizedValue) use ($property, $context) {
+        // We don't handle associative arrays so we assume this is a genuine array
+        $value = array_map(function($toNormalize) use ($property, $context) {
           $context->getNavigator()->down($property->name);
-          $normalizedValue = $this->normalize($notNormalizedValue, $context);
+          $normalizedValue = $this->normalize($toNormalize, $context);
           $context->getNavigator()->up();
           return $normalizedValue;
         }, $value);

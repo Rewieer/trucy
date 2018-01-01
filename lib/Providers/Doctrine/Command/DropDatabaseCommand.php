@@ -6,7 +6,7 @@
  * file that was distributed with this source code.
  */
 
-namespace App\Providers\Doctrine\Command;
+namespace Trucy\Providers\Doctrine\Command;
 
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -14,10 +14,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Trucy\Console\ContainerAwareCommand;
 
-class CreateDatabaseCommand extends ContainerAwareCommand {
+class DropDatabaseCommand extends ContainerAwareCommand {
   protected function configure() {
     $this
-      ->setName('doctrine:database:create')
+      ->setName('doctrine:database:drop')
       ->setDescription(
         'Creates the database'
       );
@@ -33,12 +33,12 @@ class CreateDatabaseCommand extends ContainerAwareCommand {
     $tmpConnection = DriverManager::getConnection($params);
 
     $db = $tmpConnection->getSchemaManager()->listDatabases();
-    if (in_array($name, $db)) {
-      $output->writeln(sprintf("<info>Database <comment>%s</comment> already exist. Creation skipped</info>", $name));
+    if (in_array($name, $db) === false) {
+      $output->writeln(sprintf("<info>Database <comment>%s</comment> does not exist. Deletion skipped</info>", $name));
       return;
     }
 
-    $tmpConnection->getSchemaManager()->createDatabase($name);
-    $output->writeln(sprintf("<info>Database <comment>%s</comment> just got created !</info>", $name));
+    $tmpConnection->getSchemaManager()->dropDatabase($name);
+    $output->writeln(sprintf("<info>Database <comment>%s</comment> just got dropped !</info>", $name));
   }
 }

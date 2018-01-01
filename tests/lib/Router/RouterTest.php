@@ -4,22 +4,17 @@
  * All rights reserved.
  */
 
-namespace Tests\Trucy;
+namespace Tests\Trucy\Router;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Trucy\Router\Route;
 use Trucy\Router\Router;
 
 class RouterTest extends TestCase {
   public function testMatchingSimpleRoute() {
     $router = new Router([
-      [
-        "path" => "/",
-        "method" => "GET",
-        "callable" => function() {
-          return "ok";
-        }
-      ]
+      new Route("/", "GET", function() { return "ok"; }),
     ]);
 
     $request = new Request();
@@ -30,20 +25,8 @@ class RouterTest extends TestCase {
   }
   public function testMatchingWithManyRoutes() {
     $router = new Router([
-      [
-        "path" => "/",
-        "method" => "GET",
-        "callable" => function() {
-          return "not ok";
-        }
-      ],
-      [
-        "path" => "/foo",
-        "method" => "GET",
-        "callable" => function() {
-          return "ok";
-        }
-      ]
+      new Route("/", "GET", function() { return "not ok"; }),
+      new Route("/foo", "GET", function() { return "ok"; }),
     ]);
 
     $request = new Request();
@@ -54,20 +37,10 @@ class RouterTest extends TestCase {
   }
   public function testMatchingWithParameter() {
     $router = new Router([
-      [
-        "path" => "/",
-        "method" => "GET",
-        "callable" => function() {
-          return "not ok";
-        }
-      ],
-      [
-        "path" => "/{id}/{slug}",
-        "method" => "GET",
-        "callable" => function($request, $param, $slug) {
-          return "param is " .$param. " and slug is " .$slug;
-        }
-      ]
+      new Route("/", "GET", function() { return "not ok"; }),
+      new Route("/{id}/{slug}", "GET", function($request, $param, $slug) {
+        return "param is " .$param. " and slug is " .$slug;
+      }),
     ]);
 
     $request = new Request();
@@ -80,20 +53,10 @@ class RouterTest extends TestCase {
     // The ?foo=bar part of the URL is not passed to the router
     // Because it can be fetched from the request's query bag
     $router = new Router([
-      [
-        "path" => "/",
-        "method" => "GET",
-        "callable" => function() {
-          return "not ok";
-        }
-      ],
-      [
-        "path" => "/{id}",
-        "method" => "GET",
-        "callable" => function($request, $param) {
-          return "param is " .$param;
-        }
-      ]
+      new Route("/", "GET", function() { return "not ok"; }),
+      new Route("/{id}", "GET", function($request, $param) {
+        return "param is " .$param;
+      }),
     ]);
 
     $request = new Request();
@@ -103,26 +66,14 @@ class RouterTest extends TestCase {
     $this->assertEquals("param is 1", $response);
   }
   public function testWithRequirements() {
-    $router = new Router();
-    $router->init([
-      [
-        "path" => "/",
-        "method" => "GET",
-        "callable" => function() {
-          return "not ok";
-        }
-      ],
-      [
-        "path" => "/{id}/{slug}",
-        "requirements" => [
-          "id" => "\d+",
-          "slug" => "\w+",
-        ],
-        "method" => "GET",
-        "callable" => function($request, $id, $slug) {
-          return "id : " .$id. " - slug : " .$slug;
-        }
-      ]
+    $router = new Router([
+      new Route("/", "GET", function() { return "not ok"; }),
+      new Route("/{id}/{slug}", "GET", function($request, $id, $slug) {
+        return "id : " .$id. " - slug : " .$slug;
+      }, [
+        "id" => "\d+",
+        "slug" => "\w+",
+      ]),
     ]);
 
     $request = new Request();

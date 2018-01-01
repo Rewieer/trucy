@@ -9,6 +9,7 @@
 namespace Trucy\Providers\Framework;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Yaml\Yaml;
 use Trucy\AbstractProvider;
 
 /**
@@ -26,8 +27,12 @@ class FrameworkProvider extends AbstractProvider {
     $container->setParameter("config_dir", $rootDir. "/config");
     $container->setParameter("entities_dir", $rootDir. "/model/Entities");
     $container->setParameter("repositories_dir", $rootDir. "/model/Repositories");
-    $container->setParameter("cache_dir", $rootDir. "/cache/" .$env);
-    $container->setParameter("logs_dir", $rootDir. "/logs/" .$env);
-    $container->setParameter("views_dir", $rootDir. "/views");
+    $container->setParameter("cache_dir", $rootDir. "/var/cache/" .$env);
+    $container->setParameter("logs_dir", $rootDir. "/var/logs/" .$env);
+
+    $data = Yaml::parse(file_get_contents($container->getParameter("config_dir"). "/parameters.yml"));
+    foreach($data["parameters"] as $name => $value) {
+      $container->setParameter($name, $value);
+    }
   }
 }

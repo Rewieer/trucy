@@ -15,15 +15,21 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Trucy\Controller\AbstractController;
 use Trucy\Controller\RouteAnnotation;
+use Trucy\Router\Router;
 
 abstract class Kernel implements KernelInterface {
   private $environment;
+
+  /**
+   * @var \Trucy\Container
+   */
   private $container;
   private $providers;
 
   private $path;
   private $bootTime;
   private $handleTime;
+  private $hasBoot = false;
 
   public function __construct($env = "dev") {
     $this->environment = $env;
@@ -40,7 +46,8 @@ abstract class Kernel implements KernelInterface {
     $this->container->setParameter("service_container", $this->container);
     $this->container->setParameter("root_dir", $this->getRootDir());
     $this->container->setParameter("env", $this->getEnvironment());
-    $this->container->setParameter("router")
+    $this->container->set("router", new Router());
+
     // Registering providers
     $providers = $this->registerProviders();
     foreach ($providers as $provider) {
@@ -56,9 +63,13 @@ abstract class Kernel implements KernelInterface {
    * Boot the kernel
    */
   public function boot() {
+    if ($this->hasBoot === true)
+      return;
+
     $start = microtime(1);
     $this->initializeContainer();
     $this->bootTime = microtime(1) - $start;
+    $this->hasBoot = true;
   }
 
   /**
