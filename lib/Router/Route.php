@@ -31,6 +31,11 @@ class Route {
   private $action;
 
   /**
+   * @var array
+   */
+  private $boundParameters = [];
+
+  /**
    * Route constructor.
    * @param string $path
    * @param array $requirements
@@ -52,10 +57,29 @@ class Route {
    * @param array $params
    * @return mixed
    */
-  public function execute($params = []) {
-    return call_user_func_array($this->action, $params);
+  public function execute(array $params = []) {
+    $result = call_user_func_array($this->action, array_merge($params, $this->boundParameters));
+    $this->boundParameters = [];
+    return $result;
   }
 
+  /**
+   * @param array $params
+   */
+  public function bindParameters(array $params) {
+    $this->boundParameters = $params;
+  }
+
+  /**
+   * @return array
+   */
+  public function getBoundParameters(): array {
+    return $this->boundParameters;
+  }
+
+  /**
+   * @return mixed|null|string|string[]
+   */
   public function getRegex() {
     $regex = preg_replace_callback("/{(\w+)}/", function($matches) {
       if (array_key_exists($matches[1], $this->requirements)) {

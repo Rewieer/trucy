@@ -19,18 +19,18 @@ use Trucy\Providers\Framework\FrameworkProvider;
 class FrameworkProviderTest extends TestCase {
   public function testInstantiating() {
     $container = new Container();
-    $container->setParameter("root_dir", __DIR__. "/../../..");
+    $container->setParameter("root_dir", __DIR__. "/../../../mock");
     $container->setParameter("env", "test");
 
     $provider = new FrameworkProvider();
     $provider->inject($container);
 
-    $this->assertEquals(__DIR__. "/../../../controller", $container->getParameter("controller_dir"));
-    $this->assertEquals(__DIR__. "/../../../config", $container->getParameter("config_dir"));
-    $this->assertEquals(__DIR__. "/../../../model/Entities", $container->getParameter("entities_dir"));
-    $this->assertEquals(__DIR__. "/../../../model/Repositories", $container->getParameter("repositories_dir"));
-    $this->assertEquals(__DIR__. "/../../../var/cache/test", $container->getParameter("cache_dir"));
-    $this->assertEquals(__DIR__. "/../../../var/logs/test", $container->getParameter("logs_dir"));
+    $this->assertEquals(__DIR__. "/../../../mock/controller", $container->getParameter("controller_dir"));
+    $this->assertEquals(__DIR__ . "/../../../mock/config", $container->getParameter("config_dir"));
+    $this->assertEquals(__DIR__ . "/../../../mock/model/Entities", $container->getParameter("entities_dir"));
+    $this->assertEquals(__DIR__ . "/../../../mock/model/Repositories", $container->getParameter("repositories_dir"));
+    $this->assertEquals(__DIR__. "/../../../mock/var/cache/test", $container->getParameter("cache_dir"));
+    $this->assertEquals(__DIR__. "/../../../mock/var/logs/test", $container->getParameter("logs_dir"));
     $this->assertEquals("127.0.0.1", $container->getParameter("database_host"));
     $this->assertEquals(null, $container->getParameter("database_port"));
     $this->assertEquals("trucy", $container->getParameter("database_name"));

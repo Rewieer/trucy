@@ -1,0 +1,9 @@
+entities:
+    Model\User:
+        attributes:
+            id:
+                getter: getId
+        views:
+            general:
+                - id
+                - email

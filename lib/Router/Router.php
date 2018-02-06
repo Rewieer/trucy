@@ -9,12 +9,11 @@
 namespace Trucy\Router;
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class Router implements RouterInterface {
   private $routes = [];
 
-  public function __construct($routes = null) {
+  public function __construct($routes = []) {
     if ($routes) {
       $this->routes = $routes;
     }
@@ -39,10 +38,10 @@ class Router implements RouterInterface {
   }
 
   /**
-   * Lookup controllers and return a response
+   * Lookup controllers and return a route
    * @param Request $request
    * @throws \Exception
-   * @return bool|mixed|Response
+   * @return Route
    */
   public function lookup(Request $request) {
     $uri = $request->server->get("REQUEST_URI");
@@ -55,12 +54,20 @@ class Router implements RouterInterface {
     }
 
     foreach ($this->routes as $route) {
-      $value = $this->match($path, $route, $request);
-      if ($value !== null) {
-        return $value;
+      if (preg_match($route->getRegex(), $path, $parameters)) {
+        $parameters[0] = $request;
+        $route->bindParameters($parameters);
+        return $route;
       }
     }
 
     return null;
+  }
+
+  /**
+   * @return array
+   */
+  public function getRoutes(): array {
+    return $this->routes;
   }
 }

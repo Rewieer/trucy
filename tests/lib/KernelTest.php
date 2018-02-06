@@ -9,13 +9,14 @@ namespace Tests\Trucy;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Trucy\ContainerSingleton;
 use Trucy\Kernel;
 use Trucy\Providers\Doctrine\DoctrineProvider;
 use Trucy\Providers\Framework\FrameworkProvider;
 
 class DummyKernel extends Kernel {
-  public function getParameters() {
-
+  public function getRootDir() {
+    return __DIR__. "/../mock";
   }
 
   public function registerProviders() {
@@ -27,6 +28,10 @@ class DummyKernel extends Kernel {
 }
 
 class KernelTest extends TestCase {
+  protected function setUp() {
+    ContainerSingleton::reset();
+  }
+
   public function testInstantiating() {
     $kernel = new DummyKernel("prod");
     $this->assertEquals("prod", $kernel->getEnvironment());
@@ -51,11 +56,15 @@ class KernelTest extends TestCase {
       [],
       [],
       [],
-      [],
+      [
+        "REQUEST_URI" => "foo/bar/index.php/user"
+      ],
       null
     );
 
+    /** @var Response $response */
     $response = $kernel->handle($request);
     $this->assertInstanceOf(Response::class, $response);
+    $this->assertEquals("This is the list of users", $response->getContent());
   }
 }

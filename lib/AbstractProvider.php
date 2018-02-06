@@ -80,5 +80,7 @@ abstract class AbstractProvider {
     return [];
   }
 
-  public function inject(ContainerBuilder $container) {}
+  public function inject(ContainerBuilder $container) {
+
+  }
 }

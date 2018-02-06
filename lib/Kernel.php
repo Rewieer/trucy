@@ -8,13 +8,15 @@
 
 namespace Trucy;
 
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Compiler\AutowirePass;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Trucy\Controller\AbstractController;
-use Trucy\Controller\RouteAnnotation;
+use Trucy\Controller\ControllerInterface;
+use Trucy\Router\Route;
 use Trucy\Router\Router;
 
 abstract class Kernel implements KernelInterface {
@@ -24,6 +26,10 @@ abstract class Kernel implements KernelInterface {
    * @var \Trucy\Container
    */
   private $container;
+
+  /**
+   * @var AbstractProvider[]
+   */
   private $providers;
 
   private $path;
@@ -43,10 +49,14 @@ abstract class Kernel implements KernelInterface {
       return;
 
     $this->container = ContainerSingleton::getInstance();
-    $this->container->setParameter("service_container", $this->container);
+    $this->container->addCompilerPass(new AutowirePass());
+
+    $this->container->set(get_class($this->container), $this->container);
     $this->container->setParameter("root_dir", $this->getRootDir());
     $this->container->setParameter("env", $this->getEnvironment());
-    $this->container->set("router", new Router());
+
+    $loader = new YamlFileLoader($this->container, new FileLocator($this->getRootDir(). '/config'));
+    $loader->load("services.yml");
 
     // Registering providers
     $providers = $this->registerProviders();
@@ -57,6 +67,35 @@ abstract class Kernel implements KernelInterface {
         $provider->inject($this->container);
       }
     }
+
+    $this->container->compile();
+  }
+
+  /**
+   *
+   */
+  public function initializeRouter() {
+    if ($this->container->has("router") === true)
+      return;
+
+    $routes = [];
+    foreach ($this->container->findTaggedServiceIds("controller") as $class => $data) {
+      $object = $this->container->get($class);
+      if (!$object instanceof ControllerInterface) {
+        throw new \Exception(
+          sprintf("The class %s must implements the ControllerInterface.", $class)
+        );
+      }
+
+      $routes[] = new Route(
+        $object->getPath(),
+        $object->getMethod(),
+        [$object, "handle"],
+        $object->getRequirements()
+      );
+    }
+
+    $this->container->set("router", new Router($routes));
   }
 
   /**
@@ -68,6 +107,7 @@ abstract class Kernel implements KernelInterface {
 
     $start = microtime(1);
     $this->initializeContainer();
+    $this->initializeRouter();
     $this->bootTime = microtime(1) - $start;
     $this->hasBoot = true;
   }
@@ -86,7 +126,8 @@ abstract class Kernel implements KernelInterface {
       throw new \Exception("You must provide a router service in order to handle a kernel request");
     }
 
-    $response = $this->container->get("router")->lookup($request);
+    $route = $this->container->get("router")->lookup($request);
+    $response = $route->execute();
     $this->handleTime = microtime(1) - $start;
 
     if ($response === null) {
@@ -118,14 +159,18 @@ abstract class Kernel implements KernelInterface {
     return $this->path;
   }
 
+  /**
+   * Return the root directory
+   * @return string
+   */
   public function getRootDir() {
     return dirname($this->getAppDirectory());
   }
 
-  public function getDirectories() {
-    return [];
-  }
-
+  /**
+   * Register a list of providers
+   * @return array
+   */
   public function registerProviders() {
     return [];
   }

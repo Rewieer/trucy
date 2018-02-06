@@ -14,29 +14,31 @@ use Trucy\Router\Router;
 class RouterTest extends TestCase {
   public function testMatchingSimpleRoute() {
     $router = new Router([
-      new Route("/", "GET", function() { return "ok"; }),
+      $route = new Route("/", "GET", function() { return "ok"; }),
     ]);
 
     $request = new Request();
     $request->server->set("REQUEST_URI", "/foo/bar/index.php/");
-    $response = $router->lookup($request);
+    $foundRoute = $router->lookup($request);
 
-    $this->assertEquals("ok", $response);
+    $this->assertEquals($route, $foundRoute);
+    $this->assertEquals([$request], $foundRoute->getBoundParameters());
   }
   public function testMatchingWithManyRoutes() {
-    $router = new Router([
+    $router = new Router($routes = [
       new Route("/", "GET", function() { return "not ok"; }),
       new Route("/foo", "GET", function() { return "ok"; }),
     ]);
 
     $request = new Request();
     $request->server->set("REQUEST_URI", "/foo/bar/index.php/foo");
-    $response = $router->lookup($request);
+    $foundRoute = $router->lookup($request);
 
-    $this->assertEquals("ok", $response);
+    $this->assertEquals($routes[1], $foundRoute);
+    $this->assertEquals([$request], $foundRoute->getBoundParameters());
   }
   public function testMatchingWithParameter() {
-    $router = new Router([
+    $router = new Router($routes = [
       new Route("/", "GET", function() { return "not ok"; }),
       new Route("/{id}/{slug}", "GET", function($request, $param, $slug) {
         return "param is " .$param. " and slug is " .$slug;
@@ -45,14 +47,15 @@ class RouterTest extends TestCase {
 
     $request = new Request();
     $request->server->set("REQUEST_URI", "/foo/bar/index.php/1/foo");
-    $response = $router->lookup($request);
+    $foundRoute = $router->lookup($request);
 
-    $this->assertEquals("param is 1 and slug is foo", $response);
+    $this->assertEquals($routes[1], $foundRoute);
+    $this->assertEquals([$request, 1, "foo"], $foundRoute->getBoundParameters());
   }
   public function testWithQueryParameters() {
     // The ?foo=bar part of the URL is not passed to the router
     // Because it can be fetched from the request's query bag
-    $router = new Router([
+    $router = new Router($routes = [
       new Route("/", "GET", function() { return "not ok"; }),
       new Route("/{id}", "GET", function($request, $param) {
         return "param is " .$param;
@@ -61,12 +64,12 @@ class RouterTest extends TestCase {
 
     $request = new Request();
     $request->server->set("REQUEST_URI", "/foo/bar/index.php/1?foo=bar");
-    $response = $router->lookup($request);
-
-    $this->assertEquals("param is 1", $response);
+    $foundRoute = $router->lookup($request);
+    $this->assertEquals($routes[1], $foundRoute);
+    $this->assertEquals([$request, 1], $foundRoute->getBoundParameters());
   }
   public function testWithRequirements() {
-    $router = new Router([
+    $router = new Router($routes = [
       new Route("/", "GET", function() { return "not ok"; }),
       new Route("/{id}/{slug}", "GET", function($request, $id, $slug) {
         return "id : " .$id. " - slug : " .$slug;
@@ -79,14 +82,11 @@ class RouterTest extends TestCase {
     $request = new Request();
     $request->server->set("REQUEST_URI", "/foo/bar/index.php/1/hehe");
 
-    $response = $router->lookup($request);
-
-    $this->assertEquals("id : 1 - slug : hehe", $response);
+    $this->assertEquals($routes[1], $foundRoute = $router->lookup($request));
+    $this->assertEquals([$request, 1, "hehe"], $foundRoute->getBoundParameters());
 
     $request = new Request();
     $request->server->set("REQUEST_URI", "/foo/bar/index.php/hehe/1");
-
-    $response = $router->lookup($request);
-    $this->assertEquals(null, $response);
+    $this->assertEquals(null, $router->lookup($request));
   }
 }

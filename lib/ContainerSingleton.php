@@ -19,6 +19,10 @@ class ContainerSingleton {
    */
   private static $container = null;
 
+  static function reset() {
+    self::$container = null;
+  }
+
   static function getInstance() {
     if (self::$container === null) {
       self::$container = new Container();

@@ -1,0 +1,20 @@
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Trucy\Providers\Doctrine\Services\:
+        resource: '../Services/*'
+
+    Trucy\Providers\Doctrine\Services\EntityManagerFactory:
+        arguments:
+            - '%doctrine.params%'
+            - '%doctrine.config%'
+
+    Doctrine\ORM\EntityManager:
+        class: Doctrine\ORM\EntityManagerInterface:
+        factory: 'Trucy\Providers\Doctrine\Services\EntityManagerFactory:create'
+
+    Doctrine\ORM\EntityManagerInterface: '@Doctrine\ORM\EntityManager'

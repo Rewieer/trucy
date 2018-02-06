@@ -8,10 +8,11 @@
 
 namespace Trucy\Providers\Doctrine;
 
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Trucy\Providers\Doctrine\Command\CreateDatabaseCommand;
 use Trucy\Providers\Doctrine\Command\DropDatabaseCommand;
 use Trucy\Providers\Doctrine\Command\SchemaUpdateCommand;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Yaml\Yaml;
@@ -26,10 +27,14 @@ class DoctrineProvider extends AbstractProvider {
      ];
   }
 
+  /**
+   * Inject doctrine into the container
+   * @param ContainerBuilder $container
+   */
   public function inject(ContainerBuilder $container) {
     $config = Setup::createAnnotationMetadataConfiguration([$container->getParameter("entities_dir")], true);
     $data = Yaml::parse(file_get_contents($container->getParameter("config_dir"). "/doctrine.yml"));
-    $parameters = $data["connection"];
+    $parameters = $data["doctrine"];
 
     $params = [
       "dbname" => $parameters["name"],
@@ -39,7 +44,10 @@ class DoctrineProvider extends AbstractProvider {
       "driver" => "pdo_mysql"
     ];
 
-    $manager = EntityManager::create($params, $config);
-    $container->set("doctrine.orm.entity_manager", $manager);
+    $container->setParameter("doctrine.params", $params);
+    $container->setParameter("doctrine.config", $config);
+
+    $loader = new YamlFileLoader($container, new FileLocator(__DIR__. '/config'));
+    $loader->load("services.yml");
   }
 }
